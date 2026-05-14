@@ -8,6 +8,7 @@ import {
   stepMovement,
 } from './game/movement'
 import { Board } from './ui/Board'
+import { Leaderboard } from './leaderboard/Leaderboard'
 
 type Action =
   | { type: 'tick' }
@@ -88,6 +89,7 @@ export default function App() {
       <p className="help">
         Arrows / WASD to move · Space to pause/resume · R to reset
       </p>
+      <Leaderboard limit={10} pollMs={5000} />
     </main>
   )
 }
