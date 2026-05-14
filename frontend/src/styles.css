@@ -1,0 +1,13 @@
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #0a0f1c;
+  color: #e2f1ff;
+}
+main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem;
+}
+h1 { font-size: clamp(2rem, 6vw, 3rem); margin: 0 0 0.5rem; }

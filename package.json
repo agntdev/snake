@@ -1,0 +1,20 @@
+{
+  "name": "snake",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Classic Snake with leaderboard and SNAKE token rewards.",
+  "workspaces": [
+    "frontend",
+    "backend",
+    "shared"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4"
+  }
+}
