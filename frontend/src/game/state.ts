@@ -19,6 +19,10 @@ export interface GameState {
   pendingDirection: Direction
   status: GameStatus
   boardSize: number
+  /** Food cell, or null if the board is full (player has won the board). */
+  food: Cell | null
+  /** Number of food items eaten this run. */
+  score: number
 }
 
 export const INITIAL_SNAKE_LENGTH = 3
@@ -42,6 +46,8 @@ export function createInitialState(boardSize: number = GAME_BOARD_SIZE): GameSta
     pendingDirection: 'right',
     status: 'idle',
     boardSize,
+    food: null,
+    score: 0,
   }
 }
 
