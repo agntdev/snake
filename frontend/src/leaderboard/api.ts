@@ -5,7 +5,11 @@
  * and so it's trivially mockable in any future tests.
  */
 
-import type { LeaderboardResponse } from '@snake/shared'
+import type {
+    ClaimRewardResponse,
+    LeaderboardResponse,
+    RegisterUserResponse,
+} from '@snake/shared'
 
 export class LeaderboardError extends Error {
     constructor(public readonly status: number, message: string) {
@@ -38,4 +42,50 @@ export async function fetchLeaderboard(
         throw new LeaderboardError(res.status, message)
     }
     return (await res.json()) as LeaderboardResponse
+}
+
+/** Register (or look up) a player and obtain their bearer token. */
+export async function registerPlayer(handle: string): Promise<RegisterUserResponse> {
+    const res = await fetch('/api/users/register', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ player: handle }),
+    })
+    if (!res.ok) {
+        let message = `register failed (${res.status})`
+        try {
+            const body = (await res.json()) as { error?: string }
+            if (body?.error) message = body.error
+        } catch {
+            // ignore
+        }
+        throw new LeaderboardError(res.status, message)
+    }
+    return (await res.json()) as RegisterUserResponse
+}
+
+/** Claim the SNAKE reward for a single score. Idempotent server-side. */
+export async function claimReward(
+    scoreId: string,
+    token: string,
+): Promise<ClaimRewardResponse> {
+    const res = await fetch('/api/rewards/claim', {
+        method: 'POST',
+        headers: {
+            'content-type': 'application/json',
+            'x-player-token': token,
+        },
+        body: JSON.stringify({ scoreId }),
+    })
+    if (!res.ok) {
+        let message = `claim failed (${res.status})`
+        try {
+            const body = (await res.json()) as { error?: string }
+            if (body?.error) message = body.error
+        } catch {
+            // ignore
+        }
+        throw new LeaderboardError(res.status, message)
+    }
+    return (await res.json()) as ClaimRewardResponse
 }

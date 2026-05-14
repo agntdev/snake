@@ -196,3 +196,93 @@ h1 { font-size: clamp(2rem, 6vw, 3rem); margin: 0 0 0.5rem; }
     padding: 0.4rem 0.35rem;
   }
 }
+
+/* ---------- Token rewards (T07) ----------------------------------------- */
+.leaderboard__reward {
+  text-align: right;
+  font-size: 0.85em;
+  white-space: nowrap;
+}
+.leaderboard__reward-dash {
+  color: #3a4358;
+}
+.leaderboard__claim {
+  background: #1f2b48;
+  color: #ffd479;
+  border: 1px solid #ffb86c;
+  border-radius: 4px;
+  padding: 0.2rem 0.55rem;
+  cursor: pointer;
+  font-size: 0.85em;
+  transition: background 0.15s ease;
+}
+.leaderboard__claim:hover:not(:disabled) {
+  background: #2a3a5c;
+}
+.leaderboard__claim:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+.leaderboard__claim-msg {
+  display: inline-block;
+  margin-left: 0.5rem;
+  color: #8be9a0;
+  font-size: 0.8em;
+}
+.leaderboard__claim-msg--err {
+  color: #ff6b6b;
+}
+.leaderboard__identity {
+  margin-top: 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #1a2236;
+  font-size: 0.85em;
+  color: #8a9bbb;
+}
+.leaderboard__identity-form {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.leaderboard__identity-label {
+  color: #8a9bbb;
+}
+.leaderboard__identity-input {
+  background: #0a0f1c;
+  border: 1px solid #2a3a5c;
+  border-radius: 4px;
+  color: #e6ecf7;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.9em;
+  min-width: 8rem;
+}
+.leaderboard__identity-save {
+  background: #2a3a5c;
+  color: #e6ecf7;
+  border: 1px solid #3a4a72;
+  border-radius: 4px;
+  padding: 0.25rem 0.65rem;
+  cursor: pointer;
+}
+.leaderboard__identity-save:hover {
+  background: #3a4a72;
+}
+.leaderboard__identity-error {
+  color: #ff6b6b;
+}
+.leaderboard__identity-status strong {
+  color: #ffd479;
+}
+.leaderboard__identity-clear {
+  background: none;
+  border: none;
+  color: #6a7a9a;
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: inherit;
+  padding: 0 0.25rem;
+}
+.leaderboard__identity-clear:hover {
+  color: #e6ecf7;
+}

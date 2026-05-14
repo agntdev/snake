@@ -45,3 +45,60 @@ export interface RegisterUserResponse {
   /** Bearer token for `X-Player-Token` header on subsequent writes. */
   token: string
 }
+
+// ---------- Token rewards (T07) --------------------------------------------
+
+/** 1 SNAKE expressed in nano-units. Authoritative on-wire amounts use nano. */
+export const SNAKE_NANO_PER_TOKEN = 1_000_000_000
+
+/**
+ * Why a token is awarded.
+ *   - 'score'  : per-game payout claimed via POST /api/rewards/claim
+ *   - 'top1' / 'top3' / 'top10' : reserved for periodic leaderboard bonuses
+ *     (T07 ships the placeholder amounts in the bonuses endpoint; payouts
+ *     of these reasons land in a follow-up).
+ */
+export type RewardReason = 'score' | 'top1' | 'top3' | 'top10'
+
+/** A single SNAKE reward row, returned by claim and history endpoints. */
+export interface RewardEntry {
+  id: string
+  playerId: string
+  player: string
+  scoreId: string | null
+  /** Raw SNAKE amount in nano-units. String to avoid JS bigint precision loss. */
+  amountNano: string
+  /** Convenience whole-SNAKE float; UI-friendly, not authoritative. */
+  amountSnake: number
+  reason: RewardReason
+  /** Human-readable tier label (e.g. `'flat'`, `'bronze'`, `'gold'`). */
+  tier: string
+  createdAt: string
+}
+
+export interface ClaimRewardRequest {
+  scoreId: string
+}
+
+export interface ClaimRewardResponse {
+  reward: RewardEntry
+  /** True when the reward already existed and was returned as-is (idempotent claim). */
+  alreadyClaimed: boolean
+}
+
+export interface MyRewardsResponse {
+  rewards: RewardEntry[]
+  /** Sum of `amountNano` as a decimal string. */
+  totalNano: string
+  totalSnake: number
+}
+
+export interface LeaderboardBonusEntry {
+  position: number
+  amountNano: string
+  amountSnake: number
+}
+
+export interface LeaderboardBonusesResponse {
+  bonuses: LeaderboardBonusEntry[]
+}

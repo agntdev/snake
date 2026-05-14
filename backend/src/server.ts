@@ -1,5 +1,6 @@
 import express from 'express'
 import { leaderboardRouter } from './routes/leaderboard.js'
+import { rewardsRouter } from './routes/rewards.js'
 
 const app = express()
 app.use(express.json())
@@ -12,6 +13,9 @@ app.get('/api/health', (_req, res) => {
 // in the frontend Vite config (`/api -> http://localhost:8787`) hits them
 // without extra rewriting.
 app.use('/api', leaderboardRouter())
+
+// Token reward routes (T07). Same auth model (X-Player-Token header).
+app.use('/api', rewardsRouter())
 
 const port = Number(process.env.PORT ?? 8787)
 
