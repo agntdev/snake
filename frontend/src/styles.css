@@ -11,3 +11,48 @@ main {
   padding: 2rem 1.25rem;
 }
 h1 { font-size: clamp(2rem, 6vw, 3rem); margin: 0 0 0.5rem; }
+
+.hud { margin: 0.5rem 0 1rem; opacity: 0.85; }
+.hud strong { color: #7ad7ff; text-transform: uppercase; letter-spacing: 0.05em; }
+
+.help {
+  margin-top: 1rem;
+  font-size: 0.85rem;
+  opacity: 0.6;
+  text-align: center;
+}
+
+.board {
+  display: grid;
+  width: min(70vh, 100%);
+  aspect-ratio: 1 / 1;
+  margin: 0 auto;
+  border: 2px solid #1f2c4a;
+  background: #0d1426;
+  gap: 1px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.board.status-paused { opacity: 0.5; }
+.board.status-gameover { box-shadow: 0 0 0 2px #ff5577 inset; }
+
+.cell {
+  background: #0d1426;
+}
+
+.cell.snake {
+  background: #4ade80;
+  border-radius: 2px;
+}
+
+.cell.snake.head {
+  background: #86efac;
+  box-shadow: 0 0 6px rgba(134, 239, 172, 0.8);
+}
+
+.cell.food {
+  background: #ff5577;
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(255, 85, 119, 0.8);
+}
