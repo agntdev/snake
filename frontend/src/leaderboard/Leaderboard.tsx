@@ -8,11 +8,17 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { LeaderboardResponse, ScoreEntry } from '@snake/shared'
+import type {
+    ConversionConfig,
+    LeaderboardResponse,
+    RewardTierConfig,
+    ScoreEntry,
+} from '@snake/shared'
 import {
     LeaderboardError,
     claimReward,
     fetchLeaderboard,
+    fetchRewardsConfig,
     registerPlayer,
 } from './api'
 
@@ -45,6 +51,24 @@ function saveIdentity(identity: PlayerIdentity): void {
     }
 }
 
+/**
+ * Pick the highest tier whose `minScore <= score`. Mirrors the server-side
+ * `pickTier` so the UI can label rows without a server round-trip per row.
+ */
+function pickTierForScore(
+    tiers: ReadonlyArray<RewardTierConfig>,
+    score: number,
+): RewardTierConfig | null {
+    if (tiers.length === 0) return null
+    const sorted = [...tiers].sort((a, b) => a.minScore - b.minScore)
+    let chosen: RewardTierConfig = sorted[0]!
+    for (const t of sorted) {
+        if (t.minScore <= score) chosen = t
+        else break
+    }
+    return chosen
+}
+
 export interface LeaderboardProps {
     /** Number of entries to fetch and render. Default 10. */
     limit?: number
@@ -59,6 +83,11 @@ export function Leaderboard({ limit = 10, pollMs = 5000 }: LeaderboardProps) {
     const [generatedAt, setGeneratedAt] = useState<string | null>(null)
     const [status, setStatus] = useState<Status>('loading')
     const [error, setError] = useState<string | null>(null)
+
+    // Active reward conversion config, fetched once on mount. Used to label
+    // each row with its tier (bronze/silver/gold/legendary) without polling
+    // the server per row.
+    const [conversion, setConversion] = useState<ConversionConfig | null>(null)
 
     // Player identity — persisted in localStorage. The claim button is only
     // shown on rows whose `player` matches the saved handle (case-insensitive).
@@ -145,6 +174,18 @@ export function Leaderboard({ limit = 10, pollMs = 5000 }: LeaderboardProps) {
         return () => abortRef.current?.abort()
     }, [refresh])
 
+    // Fetch the conversion config once. Failures are non-fatal: rows simply
+    // skip the tier badge if we never get a config.
+    useEffect(() => {
+        const ctrl = new AbortController()
+        fetchRewardsConfig(ctrl.signal)
+            .then((res) => setConversion(res.config))
+            .catch(() => {
+                /* silent — tier badges will be hidden */
+            })
+        return () => ctrl.abort()
+    }, [])
+
     useEffect(() => {
         if (pollMs <= 0) return
         let intervalId: number | undefined
@@ -225,10 +266,23 @@ export function Leaderboard({ limit = 10, pollMs = 5000 }: LeaderboardProps) {
                                 entry.player.toLowerCase() === identity.handle.toLowerCase()
                             const claimMsg =
                                 claimState && claimState.scoreId === entry.id ? claimState : null
+                            const tier = conversion
+                                ? pickTierForScore(conversion.tiers, entry.score)
+                                : null
                             return (
                                 <tr key={entry.id}>
                                     <td className="leaderboard__rank">{entry.rank ?? index + 1}</td>
-                                    <td className="leaderboard__player">{entry.player}</td>
+                                    <td className="leaderboard__player">
+                                        {entry.player}
+                                        {tier && (
+                                            <span
+                                                className={`leaderboard__tier leaderboard__tier--${tier.label}`}
+                                                title={`Tier ${tier.label} (×${tier.multiplier})`}
+                                            >
+                                                {tier.label}
+                                            </span>
+                                        )}
+                                    </td>
                                     <td className="leaderboard__score">
                                         {entry.score.toLocaleString()}
                                     </td>

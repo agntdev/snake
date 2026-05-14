@@ -286,3 +286,39 @@ h1 { font-size: clamp(2rem, 6vw, 3rem); margin: 0 0 0.5rem; }
 .leaderboard__identity-clear:hover {
   color: #e6ecf7;
 }
+
+/* ---------- Tier badges (T08) -------------------------------------------- */
+.leaderboard__tier {
+  display: inline-block;
+  margin-left: 0.45rem;
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  font-size: 0.7em;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  vertical-align: middle;
+  background: #1a2236;
+  color: #8a9bbb;
+  border: 1px solid #2a3a5c;
+}
+.leaderboard__tier--bronze {
+  background: #2c1d12;
+  color: #cd8c5c;
+  border-color: #cd8c5c;
+}
+.leaderboard__tier--silver {
+  background: #1c2230;
+  color: #c0c8d8;
+  border-color: #c0c8d8;
+}
+.leaderboard__tier--gold {
+  background: #2a230d;
+  color: #ffd479;
+  border-color: #ffd479;
+}
+.leaderboard__tier--legendary {
+  background: #2a0d2a;
+  color: #ff79c6;
+  border-color: #ff79c6;
+}

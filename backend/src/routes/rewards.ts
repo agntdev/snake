@@ -27,12 +27,15 @@ import {
     findRewardByScoreId,
     findScoreById,
     insertReward,
+    leaderboardPositionForScore,
     rewardsForPlayer,
     type RewardRow,
 } from '../rewards/repo.js'
 import {
-    PLACEHOLDER_LEADERBOARD_BONUSES,
+    DEFAULT_CONVERSION_CONFIG,
     computeReward,
+    loadConversionConfig,
+    type ConversionConfig,
 } from '../rewards/conversion.js'
 
 // ---------- Validation ------------------------------------------------------
@@ -104,11 +107,17 @@ function sumNano(entries: ReadonlyArray<{ amountNano: string }>): string {
 
 export interface RewardsRouterOptions {
     db?: Db
+    /** Override conversion config; defaults to env-loaded then defaults. */
+    config?: ConversionConfig
 }
 
 export function rewardsRouter(opts: RewardsRouterOptions = {}): Router {
     const router = Router()
     const db = async (): Promise<Db> => opts.db ?? (await getDb())
+    // Resolve the active conversion config once at router boot. Tests pass an
+    // explicit override; production reads SNAKE_REWARD_CONFIG_JSON via the
+    // loader, which falls back to DEFAULT_CONVERSION_CONFIG if unset.
+    const config: ConversionConfig = opts.config ?? loadConversionConfig()
 
     router.post('/rewards/claim', async (req, res, next) => {
         try {
@@ -139,7 +148,14 @@ export function rewardsRouter(opts: RewardsRouterOptions = {}): Router {
                 return
             }
 
-            const { amountNano, tier, reason } = computeReward({ score: score.score })
+            // T08: look up the score's current leaderboard rank so position
+            // bonuses (top-1/top-3/top-10) can apply on top of the tiered base.
+            const leaderboardPosition = await leaderboardPositionForScore(conn, scoreId)
+            const { amountNano, tier, reason } = computeReward({
+                score: score.score,
+                leaderboardPosition: leaderboardPosition ?? undefined,
+                config,
+            })
             const inserted = await insertReward(conn, {
                 playerId: user.id,
                 scoreId,
@@ -177,13 +193,29 @@ export function rewardsRouter(opts: RewardsRouterOptions = {}): Router {
 
     router.get('/rewards/leaderboard-bonuses', async (_req, res, next) => {
         try {
-            const bonuses: LeaderboardBonusEntry[] = PLACEHOLDER_LEADERBOARD_BONUSES.map((b) => ({
+            const bonuses: LeaderboardBonusEntry[] = config.leaderboardBonuses.map((b) => ({
                 position: b.position,
                 amountNano: snakeToNano(b.snake),
                 amountSnake: b.snake,
             }))
             const out: LeaderboardBonusesResponse = { bonuses }
             res.json(out)
+        } catch (e) {
+            next(e)
+        }
+    })
+
+    /**
+     * T08: surface the active conversion config so the UI can display
+     * "next tier at X" hints and advertised position bonuses without
+     * hard-coding values.
+     */
+    router.get('/rewards/config', async (_req, res, next) => {
+        try {
+            res.json({
+                config,
+                isDefault: config === DEFAULT_CONVERSION_CONFIG,
+            })
         } catch (e) {
             next(e)
         }

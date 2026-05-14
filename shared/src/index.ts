@@ -102,3 +102,29 @@ export interface LeaderboardBonusEntry {
 export interface LeaderboardBonusesResponse {
   bonuses: LeaderboardBonusEntry[]
 }
+
+// ---------- Conversion config (T08) ----------------------------------------
+
+export interface RewardTierConfig {
+  label: string
+  minScore: number
+  multiplier: number
+}
+
+export interface PositionBonusConfig {
+  maxPosition: number
+  snake: number
+  reason: RewardReason
+}
+
+export interface ConversionConfig {
+  tiers: RewardTierConfig[]
+  positionBonuses: PositionBonusConfig[]
+  leaderboardBonuses: { position: number; snake: number }[]
+}
+
+export interface RewardsConfigResponse {
+  config: ConversionConfig
+  /** True when the server is using the built-in defaults (no env override). */
+  isDefault: boolean
+}

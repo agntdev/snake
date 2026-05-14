@@ -109,6 +109,40 @@ export async function findScoreById(db: Db, scoreId: string): Promise<ScoreOwner
     return result.rows[0] ?? null
 }
 
+/**
+ * Compute the 1-based global leaderboard rank of a single score row.
+ *
+ * Tie-break matches the leaderboard read path (`score DESC, created_at ASC`):
+ * count rows that strictly beat us, plus rows tied on score that landed
+ * earlier, plus 1.
+ *
+ * Returns `null` if the score id doesn't exist.
+ *
+ * We do this in two queries instead of a single correlated subquery because
+ * pg-mem (used in tests) doesn't resolve outer aliases inside `(SELECT …)`
+ * subqueries. Two round-trips against an in-memory adapter is fine.
+ */
+export async function leaderboardPositionForScore(
+    db: Db,
+    scoreId: string,
+): Promise<number | null> {
+    const me = await db.query<{ score: number; created_at: string | Date }>(
+        `SELECT score, created_at FROM scores WHERE id = $1`,
+        [scoreId],
+    )
+    const row = me.rows[0]
+    if (!row) return null
+    const ahead = await db.query<{ count: string | number }>(
+        `SELECT COUNT(*) AS count
+         FROM scores
+         WHERE score > $1
+            OR (score = $1 AND created_at < $2)`,
+        [row.score, row.created_at],
+    )
+    const aheadCount = Number(ahead.rows[0]?.count ?? 0)
+    return aheadCount + 1
+}
+
 function normalize(row: RewardRow): RewardRow {
     return {
         ...row,

@@ -9,6 +9,7 @@ import type {
     ClaimRewardResponse,
     LeaderboardResponse,
     RegisterUserResponse,
+    RewardsConfigResponse,
 } from '@snake/shared'
 
 export class LeaderboardError extends Error {
@@ -62,6 +63,15 @@ export async function registerPlayer(handle: string): Promise<RegisterUserRespon
         throw new LeaderboardError(res.status, message)
     }
     return (await res.json()) as RegisterUserResponse
+}
+
+/** Fetch the active conversion config (tiers, multipliers, bonuses). */
+export async function fetchRewardsConfig(signal?: AbortSignal): Promise<RewardsConfigResponse> {
+    const res = await fetch('/api/rewards/config', { signal })
+    if (!res.ok) {
+        throw new LeaderboardError(res.status, `config request failed (${res.status})`)
+    }
+    return (await res.json()) as RewardsConfigResponse
 }
 
 /** Claim the SNAKE reward for a single score. Idempotent server-side. */
