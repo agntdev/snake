@@ -1,12 +1,8 @@
 import { useEffect, useReducer, useRef } from 'react'
 import { GAME_BOARD_SIZE, TICK_MS } from '@snake/shared'
 import { createInitialState, type GameState } from './game/state'
-import {
-  keyToDirection,
-  requestDirection,
-  resetGame,
-  stepMovement,
-} from './game/movement'
+import { keyToDirection, requestDirection, resetGame } from './game/movement'
+import { tick, withInitialFood } from './game/food'
 import { Board } from './ui/Board'
 
 type Action =
@@ -19,17 +15,20 @@ type Action =
 function reducer(state: GameState, action: Action): GameState {
   switch (action.type) {
     case 'tick':
-      return stepMovement(state)
+      return tick(state)
     case 'turn': {
       const dir = keyToDirection(action.key)
       if (!dir) return state
       const turned = requestDirection(state, dir)
-      // First arrow press also kicks the game off from idle.
-      if (turned.status === 'idle') return { ...turned, status: 'running' }
+      // First arrow press also kicks the game off from idle (and seeds food).
+      if (turned.status === 'idle') {
+        return { ...withInitialFood(turned), status: 'running' }
+      }
       return turned
     }
     case 'start':
-      if (state.status === 'gameover') return resetGame(state)
+      if (state.status === 'gameover') return withInitialFood(resetGame(state))
+      if (state.status === 'idle') return { ...withInitialFood(state), status: 'running' }
       return { ...state, status: 'running' }
     case 'pause':
       if (state.status !== 'running') return state
@@ -82,9 +81,9 @@ export default function App() {
     <main>
       <h1>🐍 Snake</h1>
       <p className="hud">
-        Status: <strong>{state.status}</strong> · Length: {state.snake.length}
+        Status: <strong>{state.status}</strong> · Score: {state.score} · Length: {state.snake.length}
       </p>
-      <Board state={state} />
+      <Board state={state} food={state.food} />
       <p className="help">
         Arrows / WASD to move · Space to pause/resume · R to reset
       </p>
